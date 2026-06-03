@@ -1,28 +1,28 @@
-# Ideogram 4 Colab
+# Ideogram 4 Colab Notebook
 
-Notebook Colab para rodar o modelo [Ideogram 4](https://github.com/ideogram-oss/ideogram4) localmente com GPU T4 e expor uma API geradora de imagens via `cloudflared`.
+This Colab notebook runs [Ideogram 4](https://github.com/ideogram-oss/ideogram4) locally on a T4 GPU and exposes an image generation API through `cloudflared`.
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/fvarellalopes/ideogramoss-colab/blob/main/Ideogram4_Colab.ipynb)
 
-## Como usar
+## How to use
 
-1. Abra pelo botão acima (ou diretamente no Colab).
-2. Aceite a licença no Hugging Face em `ideogram-ai/ideogram-4-nf4`.
-3. Cole seu `HF_TOKEN` no Colab Secrets como `HF_TOKEN` (opcional, mas recomendado).
-4. Rode as células em ordem.
-5. Copie a URL do `cloudflared` exibida no final.
+1. Open the notebook using the button above (or directly in Colab).
+2. Accept the model license on Hugging Face for `ideogram-ai/ideogram-4-nf4`.
+3. Paste your `HF_TOKEN` in Colab Secrets (optional, but recommended).
+4. Run the cells in order.
+5. Copy the `cloudflared` tunnel URL shown at the end.
 
 ## Endpoint
 
-Depois que o notebook rodar, o endpoint é:
+Once the notebook is running, the API endpoint is:
 
 - `POST {TUNNEL_URL}/generate`
 
-Body esperado:
+Expected request body:
 
 ```json
 {
-  "prompt": "descrição da imagem",
+  "prompt": "image description",
   "token": "YOUR_SECRET_TOKEN",
   "height": 1024,
   "width": 1024,
@@ -31,10 +31,16 @@ Body esperado:
 }
 ```
 
-A resposta retorna `{"image": "<base64 png>"}`.
+Response format:
 
-## Pré-requisitos
+```json
+{
+  "image": "<base64 png>"
+}
+```
 
-- GPU T4 ou superior.
-- `HF_TOKEN` com acesso ao checkpoint gated do Ideogram 4.
-- `IDEOGRAM_API_KEY` é necessário apenas se quiser usar o magic prompt padrão.
+## Requirements
+
+- T4 GPU or better.
+- `HF_TOKEN` with access to the gated Ideogram 4 checkpoint.
+- `IDEOGRAM_API_KEY` is required only if you want to use the default magic prompt.
