@@ -289,6 +289,54 @@ class Ideogram4Pipeline:
     transformer_config = transformer_config or Ideogram4Config()
     device = torch.device(device)
 
+    # If device_map is provided, try accelerate-based loading for fp8 checkpoints
+    if config.device_map:
+      from transformers import AutoModelForCausalLM
+      from accelerate import init_empty_weights, load_checkpoint_and_dispatch
+      print(f'Loading with accelerate device_map={config.device_map} ...')
+      with init_empty_weights():
+        conditional_transformer = Ideogram4Transformer(transformer_config)
+        unconditional_transformer = Ideogram4Transformer(transformer_config)
+      conditional_state_dict = _load_indexed_or_single_state_dict(
+        config.weights_repo, config.conditional_index_filename
+      )
+      unconditional_state_dict = _load_indexed_or_single_state_dict(
+        config.weights_repo, config.unconditional_index_filename
+      )
+      load_checkpoint_and_dispatch(
+        conditional_transformer,
+        conditional_state_dict,
+        device_map=config.device_map,
+      )
+      load_checkpoint_and_dispatch(
+        unconditional_transformer,
+        unconditional_state_dict,
+        device_map=config.device_map,
+      )
+      del conditional_state_dict
+      del unconditional_state_dict
+      text_tokenizer, text_encoder = _load_qwen3_vl(
+        config.weights_repo,
+        device,
+        dtype,
+        tokenizer_subfolder=config.tokenizer_subfolder,
+        text_encoder_subfolder=config.text_encoder_subfolder,
+      )
+      autoencoder_weights = hf_hub_download(
+        repo_id=config.weights_repo, filename=config.autoencoder_filename
+      )
+      autoencoder = _load_autoencoder(autoencoder_weights, device, dtype)
+      return cls(
+        conditional_transformer=conditional_transformer,
+        unconditional_transformer=unconditional_transformer,
+        text_encoder=text_encoder,
+        text_tokenizer=text_tokenizer,
+        autoencoder=autoencoder,
+        config=config,
+        device=device,
+        dtype=dtype,
+      )
+
     # Colab-friendly: load on CPU first, then move components gradually
     if config.colab_friendly:
       load_device = torch.device("cpu")
